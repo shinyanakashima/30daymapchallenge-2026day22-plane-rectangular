@@ -26,6 +26,16 @@ window.I18N = {
     keyCM: "origin meridian: about 10 cm short per km (0.9999)",
     keyZB: "zone boundary",
     keyFrame: "framed areas are moved from their true positions",
+    keyGap: "east–west distance between neighbouring lines",
+    gapsTitle: "Distance between neighbouring lines",
+    gapsNote:
+      "The 38 lines sorted from west to east on one latitude, with the true distance (on the ellipsoid) " +
+      "between each neighbouring pair. Each pair is listed once. Lines of neighbouring zones cross, so " +
+      "a line of one zone can lie between the two lines of the next. Click a row to zoom in.",
+    gapLat: "{lat}°N",
+    gapLine: "{z} {s}",
+    gapEast: "east",
+    gapWest: "west",
     viewJapan: "Japan",
     viewHokkaido: "Hokkaido",
     viewTokachi: "Tokachi (XIII)",
@@ -100,6 +110,16 @@ window.I18N = {
     keyCM: "原点を通る南北の線：1kmあたり約10cm短い（0.9999）",
     keyZB: "区域の境界",
     keyFrame: "枠の中は位置をずらして表示",
+    keyGap: "隣り合う線の東西の距離",
+    gapsTitle: "隣り合う線の間の距離",
+    gapsNote:
+      "同じ緯度の上で38本の線を西から東へ並べ、隣り合う2本の間の本当の距離（楕円体の上）を示しています。" +
+      "同じ組み合わせは一度だけ載せています。隣の系の線とは交差しているため、ある系の線が隣の系の2本の線の間に入ることがあります。" +
+      "行をクリックすると拡大します。",
+    gapLat: "北緯{lat}度",
+    gapLine: "第{z}系 {s}",
+    gapEast: "東",
+    gapWest: "西",
     viewJapan: "日本全体",
     viewHokkaido: "北海道",
     viewTokachi: "十勝（第XIII系）",

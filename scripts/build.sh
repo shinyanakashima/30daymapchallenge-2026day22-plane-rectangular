@@ -8,4 +8,5 @@ python3 scripts/assign_zones.py "$1" build/zoned.geojson
 npx mapshaper -i build/zoned.geojson -dissolve zone -simplify interval=100 keep-shapes \
   -o build/zones.geojson precision=0.00001
 python3 scripts/build_data.py build/zones.geojson web/data
+python3 scripts/build_gaps.py web/data
 python3 scripts/make_check_ref.py

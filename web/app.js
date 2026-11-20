@@ -33,7 +33,7 @@
     factor: 500,
     pts: [], // measurement points {lon, lat, zone}
   };
-  let zones = [], facts = null;
+  let zones = [], facts = null, gaps = [];
   const byZone = new Map();
 
   const BAND_COLORS = {
@@ -123,9 +123,9 @@
 
   // ---------- load ----------
   async function load() {
-    const [zj, lj, fj] = await Promise.all(
-      ["data/zones.json", "data/lines.json", "data/facts.json"].map((u) => fetch(u).then((r) => r.json())));
-    facts = fj;
+    const [zj, lj, fj, gj] = await Promise.all(
+      ["data/zones.json", "data/lines.json", "data/facts.json", "data/gaps.json"].map((u) => fetch(u).then((r) => r.json())));
+    facts = fj; gaps = gj.rows;
     for (const zd of zj.zones) {
       const z = {
         zone: zd.zone, roman: zd.roman, origin: zd.origin, labelLL: zd.label,
@@ -257,11 +257,13 @@
     requestAnimationFrame(() => { pending = false; draw(); });
   }
 
+  const placed = []; // screen rectangles of labels already drawn
   function toScreen(x, y) { return [view.x + view.k * x, view.y + view.k * y]; }
 
   function draw() {
     if (!cache) return;
     const k = view.k, px = 1 / k;
+    placed.length = 0;
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.fillStyle = SEA; ctx.fillRect(0, 0, W, H);
     ctx.setTransform(DPR * k, 0, 0, DPR * k, DPR * view.x, DPR * view.y);
@@ -335,12 +337,15 @@
       if (exag && z.labelD) { lx += state.factor * z.labelD[0]; ly += state.factor * z.labelD[1]; }
       const [sx, sy] = toScreen(lx, ly);
       if (sx < -40 || sy < -40 || sx > W + 40 || sy > H + 40) continue;
+      const zw = ctx.measureText(z.roman).width;
+      placed.push([sx - zw / 2, sy - fs / 2, sx + zw / 2, sy + fs / 2]);
       ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.strokeText(z.roman, sx, sy);
       ctx.fillStyle = "#222"; ctx.fillText(z.roman, sx, sy);
     }
     ctx.textAlign = "left";
 
     drawObihiro();
+    drawGaps();
     drawMeasure();
   }
 
@@ -349,6 +354,57 @@
     const z = byZone.get(zoneNo);
     let x = p[0] + z.offset[0], y = -p[1] + z.offset[1];
     return [x, y];
+  }
+
+  // east-west distance between neighbouring true-distance lines, drawn along the latitude
+  function gapPoints(lat, lonA, lonB, zoneNo) {
+    const pts = [];
+    for (let i = 0; i <= 16; i++) pts.push(toScreen(...worldOf(lonA + (lonB - lonA) * i / 16, lat, zoneNo)));
+    return pts;
+  }
+  function gapLabel(m) { return fmt(m / 1000, 1) + " km"; }
+  function drawGaps() {
+    if (state.mode === "exag") return;
+    ctx.font = "600 11px system-ui, -apple-system, 'Segoe UI', sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    for (const row of gaps) for (const it of row.items) {
+      const pts = gapPoints(row.lat, it.a.lon, it.b.lon, it.a.zone);
+      const [x0, y0] = pts[0], [x1, y1] = pts[pts.length - 1];
+      if (Math.max(x0, x1) < 0 || Math.min(x0, x1) > W || Math.max(y0, y1) < -20 || Math.min(y0, y1) > H + 20) continue;
+      ctx.strokeStyle = "#3b2f6b"; ctx.lineWidth = 1.2; ctx.setLineDash([]);
+      ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x0, y0 - 4); ctx.lineTo(x0, y0 + 4); ctx.moveTo(x1, y1 - 4); ctx.lineTo(x1, y1 + 4); ctx.stroke();
+      const label = gapLabel(it.m), tw = ctx.measureText(label).width;
+      const [mx, my] = pts[8];
+      // labels that don't fit between the ticks go below the line
+      const fits = Math.hypot(x1 - x0, y1 - y0) >= tw + 6;
+      if (!fits && Math.hypot(x1 - x0, y1 - y0) < 4) continue;
+      const ly = fits ? my - 3 : my + 17;
+      const rect = [mx - tw / 2 - 2, ly - 13, mx + tw / 2 + 2, ly];
+      if (placed.some((q) => rect[0] < q[2] && rect[2] > q[0] && rect[1] < q[3] && rect[3] > q[1])) continue;
+      placed.push(rect);
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, mx, ly);
+      ctx.fillStyle = "#3b2f6b"; ctx.fillText(label, mx, ly);
+    }
+    ctx.textAlign = "left";
+  }
+
+  function renderGaps() {
+    const el = document.getElementById("gaps-list");
+    const side = (s) => t(s === "E" ? "gapEast" : "gapWest");
+    const name = (p) => t("gapLine", { z: p.roman, s: side(p.side) });
+    el.innerHTML = gaps.map((row, r) => `
+      <tr class="lat"><th colspan="2">${t("gapLat", { lat: row.lat.toFixed(1) })}</th></tr>` +
+      row.items.map((it, i) => `<tr data-row="${r}" data-item="${i}" tabindex="0">
+        <td>${name(it.a)} – ${name(it.b)}</td><td>${gapLabel(it.m)}</td></tr>`).join("")).join("");
+  }
+  function zoomToGap(r, i) {
+    const row = gaps[r], it = row.items[i];
+    const a = worldOf(it.a.lon, row.lat, it.a.zone), b = worldOf(it.b.lon, row.lat, it.a.zone);
+    const half = Math.max(Math.abs(b[0] - a[0]) * 0.8, 60000);
+    const cx = (a[0] + b[0]) / 2, cy = (a[1] + b[1]) / 2;
+    fitWorld([cx - half, cy - half * 0.75, cx + half, cy + half * 0.75], true);
+    if (state.mode === "exag") setMode("true");
   }
 
   function drawObihiro() {
@@ -361,6 +417,7 @@
     ctx.font = "600 12px system-ui, -apple-system, 'Segoe UI', sans-serif";
     ctx.textBaseline = "middle";
     const label = state.lang === "ja" ? "帯広" : "Obihiro";
+    placed.push([sx - 5, sy - 8, sx + 9 + ctx.measureText(label).width, sy + 8]);
     ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, sx + 7, sy);
     ctx.fillStyle = "#111"; ctx.fillText(label, sx + 7, sy);
   }
@@ -512,7 +569,7 @@
     document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
     document.querySelectorAll("[data-lang]").forEach((b) => b.classList.toggle("on", b.dataset.lang === state.lang));
     document.getElementById("factor-val").textContent = "×" + fmt(state.factor, 0);
-    updateBadge(); renderMeasure(); renderLegend(); requestDraw();
+    updateBadge(); renderMeasure(); renderLegend(); renderGaps(); requestDraw();
   }
   function updateBadge() {
     const b = document.getElementById("badge");
@@ -561,6 +618,10 @@
       rebuild();
     });
     document.querySelectorAll("[data-view]").forEach((b) => b.addEventListener("click", () => fitWorld(VIEWS[b.dataset.view](), true)));
+    const gl = document.getElementById("gaps-list");
+    const go = (ev) => { const tr = ev.target.closest("tr[data-row]"); if (tr) zoomToGap(+tr.dataset.row, +tr.dataset.item); };
+    gl.addEventListener("click", go);
+    gl.addEventListener("keydown", (ev) => { if (ev.key === "Enter") go(ev); });
     canvas.addEventListener("click", onClick);
     canvas.addEventListener("mousemove", onMove);
     canvas.addEventListener("mouseleave", () => { hover.hidden = true; });
