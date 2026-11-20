@@ -386,7 +386,28 @@
   function drawGaps() {
     if (state.mode === "exag") return;
     ctx.font = "600 11px system-ui, -apple-system, 'Segoe UI', sans-serif";
-    // the parallel each row is measured along, with its latitude
+    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    for (const row of gaps) for (const it of row.items) {
+      const pts = gapPoints(row.lat, it.a.lon, it.b.lon, it.a.zone);
+      const [x0, y0] = pts[0], [x1, y1] = pts[pts.length - 1];
+      if (Math.max(x0, x1) < 0 || Math.min(x0, x1) > W || Math.max(y0, y1) < -20 || Math.min(y0, y1) > H + 20) continue;
+      ctx.strokeStyle = "#3b2f6b"; ctx.lineWidth = 1.2; ctx.setLineDash([]);
+      ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x0, y0 - 4); ctx.lineTo(x0, y0 + 4); ctx.moveTo(x1, y1 - 4); ctx.lineTo(x1, y1 + 4); ctx.stroke();
+      const label = gapLabel(it.m), tw = ctx.measureText(label).width;
+      const [mx, my] = pts[8];
+      // labels that don't fit between the ticks go below the line
+      const fits = Math.hypot(x1 - x0, y1 - y0) >= tw + 6;
+      if (!fits && Math.hypot(x1 - x0, y1 - y0) < 4) continue;
+      // try above the line (if it fits between the ticks), then below; skip if both collide
+      const hit = (r) => placed.some((q) => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
+      const ly = (fits ? [my - 3, my + 17] : [my + 17, my - 3]).find((y) => !hit([mx - tw / 2 - 2, y - 13, mx + tw / 2 + 2, y]));
+      if (ly === undefined) continue;
+      placed.push([mx - tw / 2 - 2, ly - 13, mx + tw / 2 + 2, ly]);
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, mx, ly);
+      ctx.fillStyle = "#3b2f6b"; ctx.fillText(label, mx, ly);
+    }
+    // the parallel each row is measured along, with its latitude (labels placed after the distances)
     for (const row of gaps) {
       if (!row.items.length) continue;
       const lons = row.items.flatMap((it) => [it.a.lon, it.b.lon]);
@@ -405,7 +426,7 @@
       ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
       ctx.setLineDash([]);
       ctx.restore();
-      const label = t("gapLat", { lat: row.lat.toFixed(0) }), tw = ctx.measureText(label).width;
+      const label = W < 600 ? row.lat.toFixed(0) + "°N" : t("gapLat", { lat: row.lat.toFixed(0) }), tw = ctx.measureText(label).width;
       const yAt = (x) => { // y of the parallel at screen x
         for (let i = 1; i < pts.length; i++) {
           const [xa, ya] = pts[i - 1], [xb, yb] = pts[i];
@@ -427,27 +448,6 @@
       placed.push(align === "right" ? [lx - tw - 2, ly - 7, lx + 2, ly + 7] : [lx - 2, ly - 7, lx + tw + 2, ly + 7]);
       ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, lx, ly);
       ctx.fillStyle = "#3b2f6b"; ctx.fillText(label, lx, ly);
-    }
-    ctx.textAlign = "center"; ctx.textBaseline = "bottom";
-    for (const row of gaps) for (const it of row.items) {
-      const pts = gapPoints(row.lat, it.a.lon, it.b.lon, it.a.zone);
-      const [x0, y0] = pts[0], [x1, y1] = pts[pts.length - 1];
-      if (Math.max(x0, x1) < 0 || Math.min(x0, x1) > W || Math.max(y0, y1) < -20 || Math.min(y0, y1) > H + 20) continue;
-      ctx.strokeStyle = "#3b2f6b"; ctx.lineWidth = 1.2; ctx.setLineDash([]);
-      ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(x0, y0 - 4); ctx.lineTo(x0, y0 + 4); ctx.moveTo(x1, y1 - 4); ctx.lineTo(x1, y1 + 4); ctx.stroke();
-      const label = gapLabel(it.m), tw = ctx.measureText(label).width;
-      const [mx, my] = pts[8];
-      // labels that don't fit between the ticks go below the line
-      const fits = Math.hypot(x1 - x0, y1 - y0) >= tw + 6;
-      if (!fits && Math.hypot(x1 - x0, y1 - y0) < 4) continue;
-      // try above the line (if it fits between the ticks), then below; skip if both collide
-      const hit = (r) => placed.some((q) => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
-      const ly = (fits ? [my - 3, my + 17] : [my + 17, my - 3]).find((y) => !hit([mx - tw / 2 - 2, y - 13, mx + tw / 2 + 2, y]));
-      if (ly === undefined) continue;
-      placed.push([mx - tw / 2 - 2, ly - 13, mx + tw / 2 + 2, ly]);
-      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, mx, ly);
-      ctx.fillStyle = "#3b2f6b"; ctx.fillText(label, mx, ly);
     }
     ctx.textAlign = "left";
   }
@@ -524,6 +524,7 @@
   }
   // screen -> lon/lat (true-scale view only), taking moved frames into account
   function pick(sx, sy) {
+    if (!cache) return null; // data not loaded yet
     const wx = (sx - view.x) / view.k, wy = (sy - view.y) / view.k;
     const cands = [];
     for (const ins of INSETS) {
@@ -634,6 +635,9 @@
     document.documentElement.lang = state.lang;
     document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
     document.querySelectorAll("[data-i18n-html]").forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+      el.title = t(el.dataset.i18nTitle); el.setAttribute("aria-label", el.title);
+    });
     document.querySelectorAll("[data-lang]").forEach((b) => b.classList.toggle("on", b.dataset.lang === state.lang));
     document.getElementById("factor-val").textContent = "×" + fmt(state.factor, 0);
     updateBadge(); renderMeasure(); renderLegend(); renderGaps(); requestDraw();
@@ -689,6 +693,18 @@
     const go = (ev) => { const tr = ev.target.closest("tr[data-row]"); if (tr) zoomToGap(+tr.dataset.row, +tr.dataset.item); };
     gl.addEventListener("click", go);
     gl.addEventListener("keydown", (ev) => { if (ev.key === "Enter") go(ev); });
+    // desktop: the panel can be hidden to give the map the whole window
+    const setPanel = (show) => {
+      document.body.classList.toggle("panel-hidden", !show);
+      document.getElementById("panel-show").hidden = show;
+      try { localStorage.setItem("panel", show ? "1" : "0"); } catch (e) { /* ignore */ }
+      const c = [view.k, (W / 2 - view.x) / view.k, (H / 2 - view.y) / view.k];
+      resize();
+      d3.select(canvas).call(zoom.transform, d3.zoomIdentity.translate(W / 2 - c[0] * c[1], H / 2 - c[0] * c[2]).scale(c[0]));
+    };
+    document.getElementById("panel-hide").addEventListener("click", () => setPanel(false));
+    document.getElementById("panel-show").addEventListener("click", () => setPanel(true));
+    try { if (localStorage.getItem("panel") === "0") { document.body.classList.add("panel-hidden"); document.getElementById("panel-show").hidden = false; } } catch (e) { /* ignore */ }
     canvas.addEventListener("click", onClick);
     canvas.addEventListener("mousemove", onMove);
     canvas.addEventListener("mouseleave", () => { hover.hidden = true; });

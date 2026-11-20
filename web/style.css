@@ -82,8 +82,7 @@ button { font: inherit; cursor: pointer; }
 .gtable td { padding: 2px 4px 2px 0; border-bottom: 1px solid #eeebe3; }
 .gtable td:last-child { text-align: right; white-space: nowrap; color: #3b2f6b; font-weight: 600; }
 #obihiro p { margin: 0; }
-details { border-top: 1px solid var(--line); padding-top: 10px; font-size: 13px; }
-summary { cursor: pointer; font-weight: 650; font-size: 13px; }
+details#about > div { font-size: 13px; }
 details ul { padding-left: 18px; margin: 4px 0; }
 details li { margin: 3px 0; }
 details p { margin: 4px 0 8px; }
@@ -110,10 +109,40 @@ details p { margin: 4px 0 8px; }
   #panel > h1 { order: 1; }
   #map-wrap { order: 2; flex: none; height: 62vh; height: 62svh; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
   #panel > .lead { margin-top: 14px; }
-  #panel > details { margin-bottom: 28px; }
+  #panel > details#about { margin-bottom: 28px; }
   h1 { font-size: 19px; }
   html[lang="ja"] h1 { font-size: 17px; }
   #badge { font-size: 12.5px; top: 8px; }
   #zoom-presets { left: 8px; bottom: 8px; }
   #zoom-presets button { padding: 4px 8px; font-size: 12px; }
+}
+
+/* folding sections */
+details.fold { border-top: 1px solid var(--line); padding: 10px 0; }
+details.fold > summary {
+  cursor: pointer; list-style: none; font-weight: 650; font-size: 13px; display: flex; justify-content: space-between; gap: 8px;
+}
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::after { content: "+"; color: var(--muted); font-weight: 400; }
+details.fold[open] > summary::after { content: "−"; }
+details.fold[open] > summary { margin-bottom: 6px; }
+details.small-fold { border-top: 0; padding: 4px 0 0; }
+details.small-fold > summary { font-weight: 500; font-size: 12.5px; color: var(--muted); justify-content: flex-start; }
+#intro { border-top: 0; padding-top: 0; }
+#intro .lead { margin: 0; }
+details#about { padding-top: 10px; }
+
+.topbar { flex-wrap: nowrap; }
+.topbar .tag { flex: 1; }
+.icon-btn {
+  border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 3px;
+  width: 26px; height: 24px; padding: 0; font-size: 12px; line-height: 1; flex: none;
+}
+#panel-show { position: fixed; top: 12px; right: 12px; z-index: 5; }
+body.panel-hidden #panel { display: none; }
+
+@media (max-width: 760px) {
+  #panel-hide, #panel-show { display: none !important; }
+  body.panel-hidden #panel { display: contents; }
+  #panel > details.fold { padding-left: 0; padding-right: 0; }
 }

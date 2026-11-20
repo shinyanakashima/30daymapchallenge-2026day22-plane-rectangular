@@ -28,10 +28,14 @@
         <button data-lang="en" class="on">EN</button>
         <button data-lang="ja">日本語</button>
       </div>
+      <button id="panel-hide" class="icon-btn" data-i18n-title="hidePanel" title="Hide panel" aria-label="Hide panel">&#x276F;</button>
     </div>
 
     <h1 data-i18n="title">Japan is made of 19 flat maps. Only on 38 lines do they tell the true distance.</h1>
-    <p class="lead" data-i18n-html="lead"></p>
+    <details class="fold" id="intro">
+      <summary data-i18n="introTitle">What are the 19 flat maps?</summary>
+      <p class="lead" data-i18n-html="lead"></p>
+    </details>
 
     <section class="controls">
       <div class="seg" role="group" id="mode">
@@ -45,7 +49,10 @@
       <div id="exag-ctl" hidden>
         <label for="factor"><span data-i18n="factorLabel">Exaggeration</span> <b id="factor-val">×500</b></label>
         <input type="range" id="factor" min="100" max="1000" step="100" value="500">
-        <p class="small" data-i18n="exagNote"></p>
+        <details class="fold small-fold">
+          <summary data-i18n="exagHow">How the exaggeration works</summary>
+          <p class="small" data-i18n="exagNote"></p>
+        </details>
       </div>
     </section>
 
@@ -55,12 +62,17 @@
       <div class="legend-ends"><span data-i18n="shorter">shorter</span><span data-i18n="longer">longer</span></div>
       <div class="legend-keys">
         <div><i class="key k1"></i><span data-i18n="keyK1">true distance (scale factor 1) — 38 lines</span></div>
-        <div><i class="key cm"></i><span data-i18n="keyCM">origin meridian: 10 cm short per km (0.9999)</span></div>
-        <div><i class="key zb"></i><span data-i18n="keyZB">zone boundary</span></div>
         <div><i class="key gp"></i><span data-i18n="keyGap">east–west distance between neighbouring lines</span></div>
-        <div><i class="key par"></i><span data-i18n="keyPar">parallel used for measuring</span></div>
-        <div><i class="key fr"></i><span data-i18n="keyFrame">framed areas are moved from their true positions</span></div>
       </div>
+      <details class="fold small-fold">
+        <summary data-i18n="moreKeys">Other symbols</summary>
+        <div class="legend-keys">
+          <div><i class="key par"></i><span data-i18n="keyPar">parallel used for measuring</span></div>
+          <div><i class="key cm"></i><span data-i18n="keyCM">origin meridian: 10 cm short per km (0.9999)</span></div>
+          <div><i class="key zb"></i><span data-i18n="keyZB">zone boundary</span></div>
+          <div><i class="key fr"></i><span data-i18n="keyFrame">framed areas are moved from their true positions</span></div>
+        </div>
+      </details>
     </section>
 
     <section id="measure">
@@ -68,22 +80,23 @@
       <div id="measure-out"><p class="small" data-i18n="measureHint"></p></div>
     </section>
 
-    <section id="gaps">
-      <h2 data-i18n="gapsTitle">Distance between neighbouring lines</h2>
+    <details class="fold" id="gaps">
+      <summary data-i18n="gapsTitle">Distance between neighbouring lines</summary>
       <p class="small" data-i18n="gapsNote"></p>
       <table class="gtable"><tbody id="gaps-list"></tbody></table>
-    </section>
+    </details>
 
-    <section id="obihiro">
-      <h2 data-i18n="obihiroTitle">Obihiro</h2>
+    <details class="fold" id="obihiro">
+      <summary data-i18n="obihiroTitle">Obihiro</summary>
       <p data-i18n-html="obihiroText"></p>
-    </section>
+    </details>
 
-    <details id="about">
+    <details class="fold" id="about">
       <summary data-i18n="aboutTitle">How it works · notes · sources</summary>
       <div data-i18n-html="aboutText"></div>
     </details>
   </aside>
+  <button id="panel-show" class="icon-btn" hidden data-i18n-title="showPanel" title="Show panel" aria-label="Show panel">&#x276E;</button>
 </div>
 <script src="vendor/d3.min.js"></script>
 <script src="vendor/proj4.js"></script>

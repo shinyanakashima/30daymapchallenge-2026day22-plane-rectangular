@@ -9,6 +9,11 @@ window.I18N = {
       "to <b>0.9999</b> on purpose, so the scale is exactly 1 only on two lines about <b>{k1km} km</b> " +
       "east and west of the origin. That makes <b>38 lines</b> for the whole country. Everywhere else " +
       "the flat maps stretch or shrink distance a little.",
+    introTitle: "What are the 19 flat maps?",
+    exagHow: "How the exaggeration works",
+    moreKeys: "Other symbols",
+    hidePanel: "Hide panel",
+    showPanel: "Show panel",
     modeTrue: "True scale",
     modeExag: "Exaggerated",
     fillDist: "Distance error",
@@ -98,6 +103,11 @@ window.I18N = {
       "区域ごとに原点を置いて横メルカトル図法で平面にします。原点を通る南北の線では縮尺をわざと<b>0.9999倍</b>にしているため、" +
       "縮尺がちょうど1倍になるのは、原点から東西に約<b>{k1km} km</b>離れた2本の線の上だけです。19区域で<b>38本</b>。" +
       "それ以外の場所では、平らな地図は距離をわずかに伸ばすか縮めています。",
+    introTitle: "19枚の平らな地図とは",
+    exagHow: "誇張のしかた",
+    moreKeys: "そのほかの記号",
+    hidePanel: "パネルを隠す",
+    showPanel: "パネルを表示",
     modeTrue: "実際の縮尺",
     modeExag: "誇張",
     fillDist: "距離のずれ",
