@@ -344,8 +344,12 @@
     }
     ctx.textAlign = "left";
 
-    drawObihiro();
+    if (state.mode !== "exag" && facts) { // keep distance labels off the Obihiro point
+      const [ox, oy] = toScreen(...worldOf(facts.obihiro.lon, facts.obihiro.lat, 13));
+      placed.push([ox - 6, oy - 6, ox + 6, oy + 6]);
+    }
     drawGaps();
+    drawObihiro();
     drawMeasure();
   }
 
@@ -379,10 +383,11 @@
       // labels that don't fit between the ticks go below the line
       const fits = Math.hypot(x1 - x0, y1 - y0) >= tw + 6;
       if (!fits && Math.hypot(x1 - x0, y1 - y0) < 4) continue;
-      const ly = fits ? my - 3 : my + 17;
-      const rect = [mx - tw / 2 - 2, ly - 13, mx + tw / 2 + 2, ly];
-      if (placed.some((q) => rect[0] < q[2] && rect[2] > q[0] && rect[1] < q[3] && rect[3] > q[1])) continue;
-      placed.push(rect);
+      // try above the line (if it fits between the ticks), then below; skip if both collide
+      const hit = (r) => placed.some((q) => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
+      const ly = (fits ? [my - 3, my + 17] : [my + 17, my - 3]).find((y) => !hit([mx - tw / 2 - 2, y - 13, mx + tw / 2 + 2, y]));
+      if (ly === undefined) continue;
+      placed.push([mx - tw / 2 - 2, ly - 13, mx + tw / 2 + 2, ly]);
       ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, mx, ly);
       ctx.fillStyle = "#3b2f6b"; ctx.fillText(label, mx, ly);
     }
@@ -417,9 +422,13 @@
     ctx.font = "600 12px system-ui, -apple-system, 'Segoe UI', sans-serif";
     ctx.textBaseline = "middle";
     const label = state.lang === "ja" ? "帯広" : "Obihiro";
-    placed.push([sx - 5, sy - 8, sx + 9 + ctx.measureText(label).width, sy + 8]);
-    ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, sx + 7, sy);
-    ctx.fillStyle = "#111"; ctx.fillText(label, sx + 7, sy);
+    // the label goes right of the point, or below / left when a distance label is there
+    const lw = ctx.measureText(label).width;
+    const spots = [[sx + 7, sy], [sx + 7, sy + 14], [sx - 7 - lw, sy]];
+    const hit = (r) => placed.some((q) => r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]);
+    const [lx, ly] = spots.find(([x, y]) => !hit([x - 2, y - 7, x + lw + 2, y + 7])) || spots[0];
+    ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, lx, ly);
+    ctx.fillStyle = "#111"; ctx.fillText(label, lx, ly);
   }
 
   function drawMeasure() {

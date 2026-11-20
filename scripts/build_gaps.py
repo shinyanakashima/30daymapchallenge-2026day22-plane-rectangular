@@ -18,19 +18,18 @@ from zones import ORIGINS, ROMAN, epsg
 outdir = sys.argv[1]
 geod = Geod(ellps="GRS80")
 
-# (latitude, zones); rows are chosen where the lines of these zones run over or near land
+# (latitude in whole degrees, zones whose lines are compared on it)
 ROWS = [
-    (43.1, [11, 12, 13]),
-    (39.2, [10]),
+    (43.0, [11, 12, 13]),
+    (40.0, [10]),
     (36.0, [6, 7, 8, 9]),
-    (35.3, [3, 5, 6]),
-    (33.3, [1, 2, 4]),
-    (27.1, [14]),
-    (26.2, [15]),
-    (25.6, [17]),
-    (24.7, [16]),
-    (24.6, [19]),
-    (20.7, [18]),
+    (35.0, [3, 5, 6]),
+    (33.0, [1, 2, 4]),
+    (27.0, [14]),
+    (26.0, [15, 17]),
+    (24.0, [16]),
+    (24.0, [19]),  # drawn in a separate frame, so not compared with XVI
+    (20.0, [18]),
 ]
 
 
