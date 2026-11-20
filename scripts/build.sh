@@ -9,4 +9,8 @@ npx mapshaper -i build/zoned.geojson -dissolve zone -simplify interval=100 keep-
   -o build/zones.geojson precision=0.00001
 python3 scripts/build_data.py build/zones.geojson web/data
 python3 scripts/build_gaps.py web/data
+npx mapshaper -i node_modules/world-atlas/countries-10m.json -target countries \
+  -filter '$.properties.name != "Japan"' -clip bbox=112,14,162,54 -dissolve -explode \
+  -filter-islands min-area=2km2 -simplify interval=800 -o build/bg.geojson precision=0.0001
+python3 scripts/build_bg.py build/bg.geojson web/data
 python3 scripts/make_check_ref.py

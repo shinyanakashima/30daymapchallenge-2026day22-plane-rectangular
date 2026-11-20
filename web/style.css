@@ -66,6 +66,7 @@ button { font: inherit; cursor: pointer; }
 .key.gp::before, .key.gp::after { content: ""; position: absolute; top: -5px; height: 8px; border-left: 1.2px solid #3b2f6b; }
 .key.gp::before { left: 0; }
 .key.gp::after { right: 0; }
+.key.par { border-top: 1px dashed rgba(59,47,107,0.7); }
 .key.fr { height: 12px; width: 18px; margin: 0 4px; border: 1px solid #9a9a9a; background: #f8f7f3; }
 .lang { display: flex; flex: none; }
 

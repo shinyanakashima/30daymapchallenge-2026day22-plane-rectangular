@@ -26,13 +26,16 @@ window.I18N = {
     keyCM: "origin meridian: about 10 cm short per km (0.9999)",
     keyZB: "zone boundary",
     keyFrame: "framed areas are moved from their true positions",
-    keyGap: "east–west distance between neighbouring lines",
+    keyGap: "distance between neighbouring lines, measured along a parallel",
+    keyPar: "parallel used for measuring (e.g. 43°N)",
     gapsTitle: "Distance between neighbouring lines",
     gapsNote:
-      "The 38 lines sorted from west to east on one latitude, with the true distance (on the ellipsoid) " +
-      "between each neighbouring pair. Each pair is listed once. Lines of neighbouring zones cross, so " +
+      "Each distance is measured along a parallel (a line of latitude) at a whole degree, shown on the map " +
+      "as a dotted line with its latitude. On that parallel the 38 lines are sorted from west to east, and the " +
+      "true distance (on the ellipsoid) between each neighbouring pair is given. Each pair is listed once. Lines of neighbouring zones cross, so " +
       "a line of one zone can lie between the two lines of the next. Click a row to zoom in.",
     gapLat: "{lat}°N",
+    gapLatRow: "along {lat}°N",
     gapLine: "{z} {s}",
     gapEast: "east",
     gapWest: "west",
@@ -85,6 +88,7 @@ window.I18N = {
       "</ul><h3>Sources</h3><ul>" +
       "<li>Geospatial Information Authority of Japan: Plane Rectangular Coordinate System (MLIT Notice No. 9 of 2002)</li>" +
       "<li>National Land Numerical Information, Administrative Boundaries (N03, 1 Jan 2025), processed by the author</li>" +
+      "<li>Background land outside Japan: Natural Earth (1:10m countries, via world-atlas)</li>" +
       "</ul>",
   },
   ja: {
@@ -110,13 +114,16 @@ window.I18N = {
     keyCM: "原点を通る南北の線：1kmあたり約10cm短い（0.9999）",
     keyZB: "区域の境界",
     keyFrame: "枠の中は位置をずらして表示",
-    keyGap: "隣り合う線の東西の距離",
+    keyGap: "隣り合う線の間の距離（緯線に沿ってはかる）",
+    keyPar: "はかった緯線（例：北緯43度）",
     gapsTitle: "隣り合う線の間の距離",
     gapsNote:
-      "同じ緯度の上で38本の線を西から東へ並べ、隣り合う2本の間の本当の距離（楕円体の上）を示しています。" +
+      "距離は1度ごとの緯線に沿ってはかっています。地図では、はかった緯線を点線で示し、緯度を書いています。" +
+      "その緯線の上で38本の線を西から東へ並べ、隣り合う2本の間の本当の距離（楕円体の上）を示しています。" +
       "同じ組み合わせは一度だけ載せています。隣の系の線とは交差しているため、ある系の線が隣の系の2本の線の間に入ることがあります。" +
       "行をクリックすると拡大します。",
     gapLat: "北緯{lat}度",
+    gapLatRow: "北緯{lat}度の緯線に沿って",
     gapLine: "第{z}系 {s}",
     gapEast: "東",
     gapWest: "西",
@@ -163,6 +170,7 @@ window.I18N = {
       "</ul><h3>出典</h3><ul>" +
       "<li>国土地理院：平面直角座標系（平成14年国土交通省告示第9号）</li>" +
       "<li>国土数値情報（行政区域データ、N03、2025年1月1日時点）を加工して作成</li>" +
+      "<li>日本以外の背景の陸地：Natural Earth（1:10m 国境、world-atlas 経由）</li>" +
       "</ul>",
   },
 };

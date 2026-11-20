@@ -33,7 +33,7 @@
     factor: 500,
     pts: [], // measurement points {lon, lat, zone}
   };
-  let zones = [], facts = null, gaps = [];
+  let zones = [], facts = null, gaps = [], bgLand = null, bgGrid = null;
   const byZone = new Map();
 
   const BAND_COLORS = {
@@ -123,9 +123,21 @@
 
   // ---------- load ----------
   async function load() {
-    const [zj, lj, fj, gj] = await Promise.all(
-      ["data/zones.json", "data/lines.json", "data/facts.json", "data/gaps.json"].map((u) => fetch(u).then((r) => r.json())));
+    const [zj, lj, fj, gj, bj] = await Promise.all(
+      ["data/zones.json", "data/lines.json", "data/facts.json", "data/gaps.json", "data/bg.json"]
+        .map((u) => fetch(u).then((r) => r.json())));
     facts = fj; gaps = gj.rows;
+    // background: neighbouring countries and a 1-degree graticule (base map only, not moved)
+    bgLand = new Path2D();
+    for (const p of bj.polys) for (const r of p) { ringTo(bgLand, geom(decode(r), null), 0); bgLand.closePath(); }
+    bgGrid = new Path2D();
+    const line = (pts) => ringTo(bgGrid, geom(Float64Array.from(pts.flat()), null), 0);
+    for (let lat = 18; lat <= 50; lat++) {
+      const pts = []; for (let lon = 115; lon <= 160; lon += 0.5) pts.push([lon, lat]); line(pts);
+    }
+    for (let lon = 115; lon <= 160; lon++) {
+      const pts = []; for (let lat = 18; lat <= 50; lat += 0.5) pts.push([lon, lat]); line(pts);
+    }
     for (const zd of zj.zones) {
       const z = {
         zone: zd.zone, roman: zd.roman, origin: zd.origin, labelLL: zd.label,
@@ -269,6 +281,10 @@
     ctx.setTransform(DPR * k, 0, 0, DPR * k, DPR * view.x, DPR * view.y);
     const exag = state.mode === "exag";
 
+    // background map
+    ctx.fillStyle = "#e4e1d9"; ctx.fill(bgLand, "evenodd");
+    ctx.strokeStyle = "rgba(60,60,60,0.09)"; ctx.lineWidth = 0.7 * px; ctx.stroke(bgGrid);
+
     // frames (background)
     for (const ins of INSETS) {
       const [x0, y0, x1, y1] = ins.frame;
@@ -370,6 +386,48 @@
   function drawGaps() {
     if (state.mode === "exag") return;
     ctx.font = "600 11px system-ui, -apple-system, 'Segoe UI', sans-serif";
+    // the parallel each row is measured along, with its latitude
+    for (const row of gaps) {
+      if (!row.items.length) continue;
+      const lons = row.items.flatMap((it) => [it.a.lon, it.b.lon]);
+      const z = row.items[0].a.zone, w = Math.min(...lons) - 0.6, e = Math.max(...lons) + 0.6;
+      const pts = gapPoints(row.lat, w, e, z);
+      // rows in moved frames stay inside their frame
+      const fr = byZone.get(z).frame;
+      let xmin = 0, xmax = W;
+      ctx.save();
+      if (fr) {
+        const [a0, b0] = toScreen(fr[0], fr[1]), [a1, b1] = toScreen(fr[2], fr[3]);
+        xmin = Math.max(0, a0); xmax = Math.min(W, a1);
+        ctx.beginPath(); ctx.rect(a0, b0, a1 - a0, b1 - b0); ctx.clip();
+      }
+      ctx.strokeStyle = "rgba(59,47,107,0.55)"; ctx.lineWidth = 1; ctx.setLineDash([2, 3]);
+      ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+      const label = t("gapLat", { lat: row.lat.toFixed(0) }), tw = ctx.measureText(label).width;
+      const yAt = (x) => { // y of the parallel at screen x
+        for (let i = 1; i < pts.length; i++) {
+          const [xa, ya] = pts[i - 1], [xb, yb] = pts[i];
+          if ((x - xa) * (x - xb) <= 0 && xb !== xa) return ya + (yb - ya) * (x - xa) / (xb - xa);
+        }
+        return null;
+      };
+      let lx, ly, align;
+      if (pts[0][0] - tw - 6 >= xmin) { lx = pts[0][0] - 4; ly = pts[0][1]; align = "right"; }
+      else {
+        lx = xmin + 4; align = "left";
+        const y0 = yAt(xmin + 4 + tw / 2);
+        if (y0 === null) continue;
+        const free = (y) => !placed.some((q) => lx - 2 < q[2] && lx + tw + 2 > q[0] && y - 7 < q[3] && y + 7 > q[1]);
+        ly = [y0 - 9, y0 + 10].find(free) ?? y0 - 9;
+      }
+      if (lx > xmax || ly < -10 || ly > H + 10) continue;
+      ctx.textAlign = align; ctx.textBaseline = "middle";
+      placed.push(align === "right" ? [lx - tw - 2, ly - 7, lx + 2, ly + 7] : [lx - 2, ly - 7, lx + tw + 2, ly + 7]);
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.strokeText(label, lx, ly);
+      ctx.fillStyle = "#3b2f6b"; ctx.fillText(label, lx, ly);
+    }
     ctx.textAlign = "center"; ctx.textBaseline = "bottom";
     for (const row of gaps) for (const it of row.items) {
       const pts = gapPoints(row.lat, it.a.lon, it.b.lon, it.a.zone);
@@ -399,7 +457,7 @@
     const side = (s) => t(s === "E" ? "gapEast" : "gapWest");
     const name = (p) => t("gapLine", { z: p.roman, s: side(p.side) });
     el.innerHTML = gaps.map((row, r) => `
-      <tr class="lat"><th colspan="2">${t("gapLat", { lat: row.lat.toFixed(1) })}</th></tr>` +
+      <tr class="lat"><th colspan="2">${t("gapLatRow", { lat: row.lat.toFixed(0) })}</th></tr>` +
       row.items.map((it, i) => `<tr data-row="${r}" data-item="${i}" tabindex="0">
         <td>${name(it.a)} – ${name(it.b)}</td><td>${gapLabel(it.m)}</td></tr>`).join("")).join("");
   }
