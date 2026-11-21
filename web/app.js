@@ -89,7 +89,7 @@
     for (let i = 0; i < g.r.length; i += 2) { g.r[i] += dx; g.r[i + 1] += dy; }
   }
 
-  // displacement of the zone's flat map relative to true distance/direction from its origin,
+  // displacement of the zone's grid position relative to ellipsoidal distance/azimuth from its origin,
   // as a vector in base-map world units
   function frameVectors(z) {
     if (z.fv) return z.fv;

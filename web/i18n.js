@@ -1,7 +1,7 @@
 // Text for both languages. {name} placeholders are filled from data/facts.json and app state.
 window.I18N = {
   en: {
-    title: "Japan is made of 19 flat maps. Only on 38 lines do they tell the true distance.",
+    title: "Japan's survey grid has 19 zones. The scale factor is 1 only on 38 lines.",
     lead: "Surveys and public survey drawings in Japan use the <b>Plane Rectangular Coordinate System</b>. The country is divided into 19 zones (I–XIX). Each zone has its own origin and is projected with the Transverse Mercator projection. The scale factor on the meridian through the origin is <b>0.9999</b>, so the scale factor is 1 on two lines about <b>{k1km} km</b> east and west of it: <b>38 lines</b> in total. Elsewhere, grid distances are slightly shorter or longer than distances on the ellipsoid.",
     introTitle: "About the Plane Rectangular Coordinate System",
     exagHow: "How the exaggeration works",
@@ -80,7 +80,7 @@ window.I18N = {
       "</ul>",
   },
   ja: {
-    title: "日本は19枚の平らな地図でできている。本当の距離を示すのは、38本の線の上だけ。",
+    title: "日本の平面直角座標系は19の系に分かれ、縮尺係数が1になるのは38本の線の上だけ。",
     lead: "日本の測量や公共測量の図面には<b>平面直角座標系</b>が使われています。全国を19の系（第I系〜第XIX系）に分け、系ごとに原点を置いて横メルカトル図法で投影します。原点を通る子午線上の縮尺係数を<b>0.9999</b>としているため、縮尺係数が1になるのは原点から東西に約<b>{k1km} km</b>の2本の線上で、全国で<b>38本</b>です。それ以外の場所では、座標上の距離は楕円体上の距離よりわずかに短いか長くなります。",
     introTitle: "平面直角座標系について",
     exagHow: "誇張のしかた",

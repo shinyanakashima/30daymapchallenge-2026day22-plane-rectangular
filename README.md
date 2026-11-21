@@ -1,10 +1,10 @@
-# Japan is made of 19 flat maps
+# Japan Plane Rectangular CS: 19 zones, 38 lines
 
 **#30DayMapChallenge 2026 · Day 22 Projections**
 
-> Japan is made of 19 flat maps. Only on 38 lines do they tell the true distance.
+> Japan's survey grid has 19 zones. The scale factor is 1 only on 38 lines.
 >
-> 日本は19枚の平らな地図でできている。本当の距離を示すのは、38本の線の上だけ。
+> 日本の平面直角座標系は19の系に分かれ、縮尺係数が1になるのは38本の線の上だけ。
 
 公開URL: https://shinyanakashima.github.io/30daymapchallenge-2026day22-plane-rectangular/
 
