@@ -2,9 +2,9 @@
 
 **#30DayMapChallenge 2026 · Day 22 Projections**
 
-> Japan's survey grid has 19 zones. The scale factor is 1 only on 38 lines.
+> Visualizing Japan's Plane Rectangular Coordinate System
 >
-> 日本の平面直角座標系は19の系に分かれ、縮尺係数が1になるのは38本の線の上だけ。
+> 平面直角座標系の可視化
 
 公開URL: https://shinyanakashima.github.io/30daymapchallenge-2026day22-plane-rectangular/
 
