@@ -726,7 +726,23 @@
     if (qs.get("mode") === "exag") setMode("exag");
     document.body.classList.add("ready");
     // exposed for automated checks
-    window.__app = { scaleFactor, byZone, state, pick, zoneAt, measure: (a, b) => { state.pts = [a, b]; return measureResult(); } };
+    window.__app = {
+      scaleFactor, byZone, state, pick, zoneAt,
+      measure: (a, b) => { state.pts = [a, b]; return measureResult(); },
+      // view control for scripted captures: the current view and a named view as [centre x, centre y, width]
+      viewNow: () => [(W / 2 - view.x) / view.k, (H / 2 - view.y) / view.k, W / view.k],
+      viewOf: (name) => {
+        const [x0, y0, x1, y1] = VIEWS[name](), pad = Math.min(W, H) < 500 ? 12 : 30;
+        const k = Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad) / (y1 - y0));
+        return [(x0 + x1) / 2, (y0 + y1) / 2, W / k];
+      },
+      setView: ([cx, cy, w]) => {
+        const k = W / w;
+        d3.select(canvas).call(zoom.transform, d3.zoomIdentity.translate(W / 2 - k * cx, H / 2 - k * cy).scale(k));
+      },
+      screenOf: (lon, lat, zone) => toScreen(...worldOf(lon, lat, zone)),
+      drawNow: () => { pending = false; draw(); },
+    };
   }
   main();
 })();
