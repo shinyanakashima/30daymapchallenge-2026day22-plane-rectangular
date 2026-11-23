@@ -28,12 +28,9 @@ let n = 0;
     await p.mouse.click(x, y);
     await p.mouse.move(1200, 700); // move off the map so no hover box stays
   };
-  await hold(2.5);
-  await fly('hokkaido', 2.2); await hold(2);
-  await fly('tokachi', 1.8); await hold(1);
-  await click(143.19633, 42.92389, 13); await hold(0.8);
-  await click(144.3815, 42.9849, 13); await hold(3);
-  await fly('japan', 2.2);
+  await hold(3);
+  await fly('hokkaido', 2.2); await hold(2.5);
+  await fly('japan', 2.2); await hold(0.5);
   await p.click('#mode button[data-mode="exag"]');
   await p.evaluate(() => { const r = document.getElementById('factor'); r.value = 100; r.dispatchEvent(new Event('input')); });
   await hold(1);
